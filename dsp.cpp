@@ -1,8 +1,14 @@
 #include <iostream>
 #include <functional>
 #include <vector>
+#include <cmath>
+
+#define PI 3.14159265359
+#define TWOPI PI * 2
 
 // Assumptions made: The DSP callback that gets registered with a DSPModule can only have one input of type T.
+// I need to figure out how to send a start value to the first callback that's sane and convienient.
+
 
 template <typename T> class DSPModule {
 private:
@@ -121,27 +127,40 @@ int main(int argc, char const *argv[]) {
     const uint BUFFER_SIZE = 2048;
     const float SAMPLE_RATE = 44100.0;
 
-    std::function<float (float)> generateImpulse = [] (float x) {
+    std::function<float (float)> generateImpulse = [=] (float x) {
         return 1.0;
     };
 
-    std::function<float (float)> increment = [] (float x) {
+    std::function<float (float)> increment = [=] (float x) {
         return x + 1.0;
     };
 
+    std::function<float (float)> sineOscillator = [=] (float x) {
+        static float phase = 0.0;
+        static float phaseIncrement = (2*3.14159) * (SAMPLE_RATE / frequency);
+        static float output = 0.0;
 
-    DSPModule<float> * firstModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, generateImpulse);
-    DSPModule<float> * secondModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
-    DSPModule<float> * thirdModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
-    DSPModule<float> * fourthModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+        output = sin(phase);
+        phase += phaseIncrement;
+
+        return output;
+    };
+
+    DSPModule<float> * sineWaveGenerator = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, sineOscillator);
+    // DSPModule<float> * firstModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, generateImpulse);
+    // DSPModule<float> * secondModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+    // DSPModule<float> * thirdModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+    // DSPModule<float> * fourthModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
 
     DSPModuleController<float> moduleController = DSPModuleController<float>(BUFFER_SIZE, SAMPLE_RATE);
 
-    moduleController.addModule(firstModule);
-    moduleController.addModule(secondModule);
+    // moduleController.addModule(firstModule);
+    // moduleController.addModule(secondModule);
 
-    DSPModule<float> * modules [] = {thirdModule, fourthModule};
-    moduleController.addModules(modules, 2);
+    // DSPModule<float> * modules [] = {thirdModule, fourthModule};
+    // moduleController.addModules(modules, 2);
+
+    moduleController.addModule(sineWaveGenerator);
 
     float * buffer = moduleController.renderCallbackChain();
 
