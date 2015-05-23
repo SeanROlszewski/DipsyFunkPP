@@ -1,5 +1,6 @@
 #include <iostream>
 #include <functional>
+#include <vector>
 
 // Assumptions made: The DSP callback that gets registered with a DSPModule can only have one input of type T.
 
@@ -12,17 +13,18 @@ private:
     T sampleRate;
     T * inputBuffer;
     T * outputBuffer;
+    DSPModule * destination;
 
 public:
 
-    DSPModule (uint size, T sr) {
+    DSPModule (uint size, T sr, std::function<T (T)> cb = nullptr) {
         sampleRate = sr;
 
         bufferSize = size;
         inputBuffer = new T [bufferSize];
         outputBuffer = new T [bufferSize];
 
-        callback = nullptr;
+        callback = cb;
 
     }
 
@@ -35,6 +37,10 @@ public:
         delete [] outputBuffer;
         callback = nullptr;
 
+    }
+
+    void setInputBuffer(T * input) {
+        inputBuffer = input;
     }
 
     void setCallback(std::function<T (T)> dspCallback) {
@@ -63,20 +69,55 @@ public:
     }
 };
 
-int main(int argc, char const *argv[]) {
+template <typename T> class DSPModuleController {
 
-    std::function<float (float)> callback = [] (float x) {
-        return x * x;
-    };
+private:
+    std::vector< DSPModule<T> * > dspModules;
+    uint bufferSize;
+    T sampleRate;
+
+public:
+
+    DSPModuleController (T size, T sr) {
+        bufferSize = size;
+        sampleRate = sr;
+    }
+
+    ~DSPModuleController () {
+        std::swap(dspModules, std::vector< DSPModule<T> *>());
+    }
+
+    void addModule(DSPModule<T> * module) {
+        dspModules.push_back(module);
+    }
+
+    T * renderCallbackChain() {
+
+        T * workingBuffer;
+
+        std::for_each(dspModules.start(), dspModules.end(), [&] (DSPModule<T> * module) {
+
+            module->setInputBuffer(workingBuffer);
+            workingBuffer = module->render();
+
+        });
+
+        return workingBuffer;
+    }
+
+};
+
+
+int main(int argc, char const *argv[]) {
 
     const uint BUFFER_SIZE = 2048;
     const float SAMPLE_RATE = 44100.0;
+    std::function<float (float)> callback = [] (float x) {
+        return x + 1;
+    };
 
-    // float * buffer = new float [BUFFER_SIZE];
+    DSPModule<float> myModule = DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, callback);
 
-    DSPModule<float> myModule = DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE);
-
-    myModule.setCallback(callback);
     float * buffer = myModule.render();
 
     std::for_each(&buffer[0], &buffer[BUFFER_SIZE], [] (float x) {
