@@ -94,11 +94,11 @@ public:
         dspModules.push_back(module);
     }
 
-    // void addModules(DSPModule<T> ** modules, uint numberOfModules) {
-    //     for (int i = 0; i < numberOfModules; ++i) {
-    //         dspModules.push_back(modules[i]);
-    //     }
-    // }
+    void addModules(DSPModule<T> ** modules, uint numberOfModules) {
+        for (int i = 0; i < numberOfModules; ++i) {
+            dspModules.push_back(modules[i]);
+        }
+    }
 
     T * renderCallbackChain() {
 
@@ -131,14 +131,19 @@ int main(int argc, char const *argv[]) {
 
     DSPModule<float> * firstModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, generateImpulse);
     DSPModule<float> * secondModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+    DSPModule<float> * thirdModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+    DSPModule<float> * fourthModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+
 
     DSPModuleController<float> moduleController = DSPModuleController<float>(BUFFER_SIZE, SAMPLE_RATE);
 
     moduleController.addModule(firstModule);
     moduleController.addModule(secondModule);
 
-    float * buffer = moduleController.renderCallbackChain();
+    DSPModule<float> * modules [] = {thirdModule, fourthModule};
+    moduleController.addModules(modules, 2);
 
+    float * buffer = moduleController.renderCallbackChain();
 
     std::for_each(&buffer[0], &buffer[BUFFER_SIZE], [] (float x) {
         std::cout << x << "\n";
