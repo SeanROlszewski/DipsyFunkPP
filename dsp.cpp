@@ -73,6 +73,7 @@ template <typename T> class DSPModuleController {
 
 private:
     std::vector< DSPModule<T> * > dspModules;
+    T * workingBuffer;
     uint bufferSize;
     T sampleRate;
 
@@ -81,21 +82,27 @@ public:
     DSPModuleController (T size, T sr) {
         bufferSize = size;
         sampleRate = sr;
+        workingBuffer = new T [bufferSize];
     }
 
     ~DSPModuleController () {
-        std::swap(dspModules, std::vector< DSPModule<T> *>());
+        std::vector< DSPModule<T> *>().swap(dspModules);
+        delete workingBuffer;
     }
 
     void addModule(DSPModule<T> * module) {
         dspModules.push_back(module);
     }
 
+    // void addModules(DSPModule<T> ** modules, uint numberOfModules) {
+    //     for (int i = 0; i < numberOfModules; ++i) {
+    //         dspModules.push_back(modules[i]);
+    //     }
+    // }
+
     T * renderCallbackChain() {
 
-        T * workingBuffer;
-
-        std::for_each(dspModules.start(), dspModules.end(), [&] (DSPModule<T> * module) {
+        std::for_each(dspModules.begin(), dspModules.end(), [&] (DSPModule<T> * module) {
 
             module->setInputBuffer(workingBuffer);
             workingBuffer = module->render();
@@ -112,20 +119,30 @@ int main(int argc, char const *argv[]) {
 
     const uint BUFFER_SIZE = 2048;
     const float SAMPLE_RATE = 44100.0;
-    std::function<float (float)> callback = [] (float x) {
-        return x + 1;
+
+    std::function<float (float)> generateImpulse = [] (float x) {
+        return 1.0;
     };
 
-    DSPModule<float> myModule = DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, callback);
+    std::function<float (float)> increment = [] (float x) {
+        return x + 1.0;
+    };
 
-    float * buffer = myModule.render();
+
+    DSPModule<float> * firstModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, generateImpulse);
+    DSPModule<float> * secondModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+
+    DSPModuleController<float> moduleController = DSPModuleController<float>(BUFFER_SIZE, SAMPLE_RATE);
+
+    moduleController.addModule(firstModule);
+    moduleController.addModule(secondModule);
+
+    float * buffer = moduleController.renderCallbackChain();
+
 
     std::for_each(&buffer[0], &buffer[BUFFER_SIZE], [] (float x) {
         std::cout << x << "\n";
     });
-
-
-    myModule.clearCallback();
 
 
     return 0;
