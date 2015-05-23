@@ -4,7 +4,6 @@
 
 // Assumptions made: The DSP callback that gets registered with a DSPModule can only have one input of type T.
 
-
 template <typename T> class DSPModule {
 private:
     std::function<T (T)> callback;
@@ -18,6 +17,7 @@ private:
 public:
 
     DSPModule (uint size, T sr, std::function<T (T)> cb = nullptr) {
+
         sampleRate = sr;
 
         bufferSize = size;
@@ -35,6 +35,7 @@ public:
 
         delete [] inputBuffer;
         delete [] outputBuffer;
+
         callback = nullptr;
 
     }
@@ -133,7 +134,6 @@ int main(int argc, char const *argv[]) {
     DSPModule<float> * secondModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
     DSPModule<float> * thirdModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
     DSPModule<float> * fourthModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
-
 
     DSPModuleController<float> moduleController = DSPModuleController<float>(BUFFER_SIZE, SAMPLE_RATE);
 
