@@ -2,152 +2,126 @@
 #include <functional>
 #include <vector>
 
-// Assumptions made: The DSP callback that gets registered with a DSPModule can only have one input of type T.
 
-template <typename T> class DSPModule {
-private:
-    std::function<T (T)> callback;
+template <typename T> struct CallbackState {
 
-    uint bufferSize;
+    T * buffer;
     T sampleRate;
-    T * inputBuffer;
-    T * outputBuffer;
-    DSPModule * destination;
+    uint bufferSize;
 
-public:
+    CallbackState(T sr, uint bfSize) : sampleRate(sr), bufferSize(bfSize) {
 
-    DSPModule (uint size, T sr, std::function<T (T)> cb = nullptr) {
-
-        sampleRate = sr;
-
-        bufferSize = size;
-        inputBuffer = new T [bufferSize];
-        outputBuffer = new T [bufferSize];
-
-        callback = cb;
+        buffer = new T [bufferSize];
+        memset(buffer, bufferSize, 0);
 
     }
 
-    ~DSPModule () {
+    ~CallbackState() {
 
-        sampleRate = 0;
-        bufferSize = 0;
-
-        delete [] inputBuffer;
-        delete [] outputBuffer;
-
-        callback = nullptr;
+        delete buffer;
 
     }
 
-    void setInputBuffer(T * input) {
-        inputBuffer = input;
-    }
 
-    void setCallback(std::function<T (T)> dspCallback) {
-        callback = dspCallback;
-    }
-
-    void clearCallback() {
-        callback = nullptr;
-    }
-
-    T * render() {
-
-        if(callback != nullptr) {
-
-            for (int i = 0; i < bufferSize; ++i) {
-                outputBuffer[i] = callback(inputBuffer[i]);
-            }
-
-            return outputBuffer;
-
-        } else {
-
-            throw;
-
-        }
-    }
 };
 
 template <typename T> class DSPModuleController {
 
 private:
-    std::vector< DSPModule<T> * > dspModules;
-    T * workingBuffer;
-    uint bufferSize;
-    T sampleRate;
+    std::vector< std::function<void (CallbackState<T>*)> *> callbacks;
+    CallbackState<T> * callbackState;
 
 public:
 
-    DSPModuleController (T size, T sr) {
-        bufferSize = size;
-        sampleRate = sr;
-        workingBuffer = new T [bufferSize];
+    DSPModuleController (T sampleRate, T bufferSize) {
+
+        callbackState = new CallbackState<T>(sampleRate, bufferSize);
+        callbacks.resize(1);
+
     }
 
     ~DSPModuleController () {
-        std::vector< DSPModule<T> *>().swap(dspModules);
-        delete workingBuffer;
+
+        std::vector< std::function<void (CallbackState<T>*)> *>().swap(callbacks);
+
     }
 
-    void addModule(DSPModule<T> * module) {
-        dspModules.push_back(module);
+
+
+    void addDSPCallback(std::function<void (CallbackState<T>*)>  * module) {
+        callbacks.push_back(module);
     }
 
-    void addModules(DSPModule<T> ** modules, uint numberOfModules) {
-        for (int i = 0; i < numberOfModules; ++i) {
-            dspModules.push_back(modules[i]);
-        }
-    }
 
     T * renderCallbackChain() {
 
-        std::for_each(dspModules.begin(), dspModules.end(), [&] (DSPModule<T> * module) {
+        if (callbacks.size() > 0) {
 
-            module->setInputBuffer(workingBuffer);
-            workingBuffer = module->render();
+            // std::for_each(callbacks.begin(), callbacks.end(), [&] (std::function<void (CallbackState<T> *)>  *callback) {
 
-        });
 
-        return workingBuffer;
+
+            //     // callback(callbackState);
+
+            // });
+
+            // return callbackState->buffer;
+
+            return nullptr;
+
+        } else {
+
+            return nullptr;
+
+        }
+
     }
 
 };
+// typedef CallbackState<T> DPSCallbackStateTemp;
+typedef float * DSPCallbackReturnTypeFloat;
+typedef CallbackState<float> DSPCallbackStateFloat;
+typedef std::function<float (CallbackState<float> *)> DSPCallbackFloat;
 
 
 int main(int argc, char const *argv[]) {
 
+
+    // Obligatory parameters when working with DSP. :)
     const uint BUFFER_SIZE = 2048;
     const float SAMPLE_RATE = 44100.0;
 
-    std::function<float (float)> generateImpulse = [] (float x) {
-        return 1.0;
+
+    // The DSPCallbackController is given a list of callbacks to execute in the order received, and will report its state as it executes.
+    DSPModuleController<float> moduleController = DSPModuleController<float>(SAMPLE_RATE, BUFFER_SIZE);
+
+    std::function<void (CallbackState<float> *)> printSample = [] (DSPCallbackStateFloat *callbackState) -> void {
+
+        for (int i = 0; i < callbackState->bufferSize; ++i)
+        {
+            // Get the sample from the input buffer.
+            float sample = callbackState->buffer[i];
+
+            // Do something to the sample.
+            std::cout << sample << "\n" ;
+
+            // Re-write the sample to the buffer.
+            callbackState->buffer[i] = sample;
+
+        }
+
     };
 
-    std::function<float (float)> increment = [] (float x) {
-        return x + 1.0;
-    };
+    moduleController.addDSPCallback(&printSample);
+    moduleController.renderCallbackChain();
 
+    // Look at output.
 
-    DSPModule<float> * firstModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, generateImpulse);
-    DSPModule<float> * secondModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
-    DSPModule<float> * thirdModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
-    DSPModule<float> * fourthModule = new DSPModule<float>(BUFFER_SIZE, SAMPLE_RATE, increment);
+    // float * buffer = moduleController.renderCallbackChain();
 
-    DSPModuleController<float> moduleController = DSPModuleController<float>(BUFFER_SIZE, SAMPLE_RATE);
-
-    moduleController.addModule(firstModule);
-    moduleController.addModule(secondModule);
-
-    DSPModule<float> * modules [] = {thirdModule, fourthModule};
-    moduleController.addModules(modules, 2);
-
-    float * buffer = moduleController.renderCallbackChain();
-
-    std::for_each(&buffer[0], &buffer[BUFFER_SIZE], [] (float x) {
-        std::cout << x << "\n";
-    });
+    // std::for_each(&buffer[0], &buffer[BUFFER_SIZE], [] (float x) {
+    //     std::cout << x << "\n";
+    // });
 
 
     return 0;
