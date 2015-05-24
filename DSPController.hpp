@@ -3,6 +3,7 @@ template <typename T> struct CallbackState {
     T * buffer;
     T sampleRate;
     uint bufferSize;
+    // std::vector< std::map<void *> > callbackArguments;
 
     CallbackState(T sr, uint bfSize) : sampleRate(sr), bufferSize(bfSize) {
 
@@ -16,6 +17,18 @@ template <typename T> struct CallbackState {
         delete buffer;
 
     }
+};
+
+template <typename T> struct CallbackParameters {
+
+    CallbackParameters() {
+
+    }
+
+    ~CallbackParameters (){
+
+    }
+
 };
 
 template <typename T> class DSPModuleController {
