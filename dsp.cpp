@@ -28,7 +28,7 @@ template <typename T> struct CallbackState {
 template <typename T> class DSPModuleController {
 
 private:
-    std::vector< std::function<void (CallbackState<T>*)> *> callbacks;
+    std::vector< std::function<void (CallbackState<T>*)> > callbacks;
     CallbackState<T> * callbackState;
 
 public:
@@ -36,19 +36,18 @@ public:
     DSPModuleController (T sampleRate, T bufferSize) {
 
         callbackState = new CallbackState<T>(sampleRate, bufferSize);
-        callbacks.resize(1);
+        callbacks.resize(0);
 
     }
 
     ~DSPModuleController () {
 
-        std::vector< std::function<void (CallbackState<T>*)> *>().swap(callbacks);
+        std::vector< std::function<void (CallbackState<T>*)> >().swap(callbacks);
 
     }
 
 
-
-    void addDSPCallback(std::function<void (CallbackState<T>*)>  * module) {
+    void addDSPCallback(std::function<void (CallbackState<T>*)>  module) {
         callbacks.push_back(module);
     }
 
@@ -57,13 +56,12 @@ public:
 
         if (callbacks.size() > 0) {
 
-            // std::for_each(callbacks.begin(), callbacks.end(), [&] (std::function<void (CallbackState<T> *)>  *callback) {
+            std::for_each(callbacks.begin(), callbacks.end(), [&] (std::function<void (CallbackState<T> *)> callback) {
 
+                callback(callbackState);
+                // std::cout << "i\n";
 
-
-            //     // callback(callbackState);
-
-            // });
+            });
 
             // return callbackState->buffer;
 
@@ -99,10 +97,12 @@ int main(int argc, char const *argv[]) {
 
         for (int i = 0; i < callbackState->bufferSize; ++i)
         {
+
             // Get the sample from the input buffer.
             float sample = callbackState->buffer[i];
 
             // Do something to the sample.
+            sample += 1;
             std::cout << sample << "\n" ;
 
             // Re-write the sample to the buffer.
@@ -112,7 +112,7 @@ int main(int argc, char const *argv[]) {
 
     };
 
-    moduleController.addDSPCallback(&printSample);
+    moduleController.addDSPCallback(printSample);
     moduleController.renderCallbackChain();
 
     // Look at output.
