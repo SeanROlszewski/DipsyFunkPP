@@ -2,6 +2,9 @@
 #include <functional>
 #include <vector>
 
+typedef float * DSPCallbackReturnTypeFloat;
+typedef CallbackState<float> DSPCallbackStateFloat;
+typedef std::function<void (CallbackState<float> *)> DSPCallbackFloat;
 
 template <typename T> struct CallbackState {
 
@@ -21,8 +24,6 @@ template <typename T> struct CallbackState {
         delete buffer;
 
     }
-
-
 };
 
 template <typename T> class DSPModuleController {
@@ -59,13 +60,10 @@ public:
             std::for_each(callbacks.begin(), callbacks.end(), [&] (std::function<void (CallbackState<T> *)> callback) {
 
                 callback(callbackState);
-                // std::cout << "i\n";
 
             });
 
-            // return callbackState->buffer;
-
-            return nullptr;
+            return callbackState->buffer;
 
         } else {
 
@@ -76,10 +74,6 @@ public:
     }
 
 };
-// typedef CallbackState<T> DPSCallbackStateTemp;
-typedef float * DSPCallbackReturnTypeFloat;
-typedef CallbackState<float> DSPCallbackStateFloat;
-typedef std::function<float (CallbackState<float> *)> DSPCallbackFloat;
 
 
 int main(int argc, char const *argv[]) {
@@ -93,7 +87,7 @@ int main(int argc, char const *argv[]) {
     // The DSPCallbackController is given a list of callbacks to execute in the order received, and will report its state as it executes.
     DSPModuleController<float> moduleController = DSPModuleController<float>(SAMPLE_RATE, BUFFER_SIZE);
 
-    std::function<void (CallbackState<float> *)> printSample = [] (DSPCallbackStateFloat *callbackState) -> void {
+    DSPCallbackFloat incrementSample = [] (DSPCallbackStateFloat *callbackState) -> void {
 
         for (int i = 0; i < callbackState->bufferSize; ++i)
         {
@@ -103,7 +97,6 @@ int main(int argc, char const *argv[]) {
 
             // Do something to the sample.
             sample += 1;
-            std::cout << sample << "\n" ;
 
             // Re-write the sample to the buffer.
             callbackState->buffer[i] = sample;
@@ -112,17 +105,30 @@ int main(int argc, char const *argv[]) {
 
     };
 
+    DSPCallbackFloat printSample = [] (DSPCallbackStateFloat *callbackState) -> void {
+
+        for (int i = 0; i < callbackState->bufferSize; ++i)
+        {
+
+            // Get the sample from the input buffer.
+            float sample = callbackState->buffer[i];
+
+            // Do something to the sample.
+            std::cout << "sample number " << i << "value : " << sample << "\n";
+
+        }
+
+    };
+
+    moduleController.addDSPCallback(incrementSample);
+    moduleController.addDSPCallback(incrementSample);
     moduleController.addDSPCallback(printSample);
-    moduleController.renderCallbackChain();
 
-    // Look at output.
+    float * buffer = moduleController.renderCallbackChain();
 
-    // float * buffer = moduleController.renderCallbackChain();
-
-    // std::for_each(&buffer[0], &buffer[BUFFER_SIZE], [] (float x) {
-    //     std::cout << x << "\n";
-    // });
-
+    std::for_each(&buffer[0], &buffer[BUFFER_SIZE - 1], [] (float sample) {
+        std::cout << "renderCallbackChain Output: " << sample << "\n";
+    });
 
     return 0;
 }
