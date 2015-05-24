@@ -1,9 +1,17 @@
+#ifndef DSPCONTROLLER_H
+#define DSPCONTROLLER_H
+
+#include <iostream>
+#include <functional>
+#include <vector>
+#include <random>
+#include <map>
+
 template <typename T> struct CallbackState {
 
     T * buffer;
     T sampleRate;
     uint bufferSize;
-    // std::vector< std::map<void *> > callbackArguments;
 
     CallbackState(T sr, uint bfSize) : sampleRate(sr), bufferSize(bfSize) {
 
@@ -34,7 +42,8 @@ template <typename T> struct CallbackParameters {
 template <typename T> class DSPModuleController {
 
 private:
-    std::vector< std::function<void (CallbackState<T>*)> > callbacks;
+    std::vector< std::function<void (CallbackState<T>*, CallbackParameters<T>*)> > callbacks;
+    std::vector< CallbackParameters<T> * > callbackParameters;
     CallbackState<T> * callbackState;
 
 public:
@@ -48,25 +57,35 @@ public:
 
     ~DSPModuleController () {
 
-        std::vector< std::function<void (CallbackState<T>*)> >().swap(callbacks);
+        std::vector< std::function <void (CallbackState<T>*, CallbackParameters<T>*)> >().swap(callbacks);
+        std::vector< CallbackParameters <T> * >().swap(callbackParameters);
 
     }
 
+    void addDSPCallback(std::function<void (CallbackState<T>*, CallbackParameters<T>*)>  callback,
+                                                                  CallbackParameters<T>  *callbackParameter) {
 
-    void addDSPCallback(std::function<void (CallbackState<T>*)>  module) {
-        callbacks.push_back(module);
+        callbackParameters.push_back(callbackParameter);
+        callbacks.push_back(callback);
+
     }
-
 
     T * renderCallbackChain() {
 
         if (callbacks.size() > 0) {
 
-            std::for_each(callbacks.begin(), callbacks.end(), [&] (std::function<void (CallbackState<T> *)> callback) {
+            typename std::vector< std::function<void (CallbackState<T>*, CallbackParameters<T>*)>>::iterator callbacksIt;
+            typename std::vector< CallbackParameters<T> * >::iterator callbackParametersIt;;
 
-                callback(callbackState);
+            for (   callbacksIt = callbacks.begin(), callbackParametersIt = callbackParameters.begin();
+                    callbacksIt != callbacks.end() && callbackParametersIt != callbackParameters.end();
+                    ++callbacksIt, ++callbackParametersIt ) {
 
-            });
+                auto parameters = *callbackParametersIt;
+                std::function<void (CallbackState<T>*, CallbackParameters<T>*)> callback = *callbacksIt;
+                callback(callbackState, parameters);
+
+            };
 
             return callbackState->buffer;
 
@@ -79,3 +98,12 @@ public:
     }
 
 };
+
+// Convenience Typedefs
+
+typedef float * DSPCallbackReturnTypeFloat;
+typedef CallbackState<float> DSPCallbackStateFloat;
+typedef CallbackParameters<float> DSPCallbackParametersFloat;
+typedef std::function<void (DSPCallbackStateFloat *, DSPCallbackParametersFloat *)> DSPCallbackFloat;
+
+#endif
