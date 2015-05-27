@@ -182,7 +182,6 @@ int main(int argc, char const *argv[]) {
     CallbackController<float> callbackController = CallbackController<float>(SAMPLE_RATE, BUFFER_SIZE);
 
     callbackController.addCallback(sineGenerator);
-    // callbackController.addCallback(sawtoothGenerator);
     callbackController.addCallback(LFO);
 
     runPortAudioWithUserData(SAMPLE_RATE, BUFFER_SIZE, &callbackController);
