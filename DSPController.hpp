@@ -1,59 +1,70 @@
 #ifndef DSPCONTROLLER_H
 #define DSPCONTROLLER_H
 
-#include <iostream>
 #include <functional>
 #include <vector>
-#include <random>
-#include <map>
 
-void dumpBufferOfSize( const float * buffer, const int bufferSize ) {
+template <typename T> class SignalMatrix {
 
-    if (buffer != nullptr) {
+private:
 
-        std::for_each(&buffer[0], &buffer[bufferSize - 1], [] (float sample) {
-            std::cout << sample << "\n";
-        });
+    T ** signalMatrix;  // A list of signal inputs to the function.
+    unsigned int signalCount; // The number of signals in the matrix.
+
+public:
+
+    SignalMatrix(const unsigned int numberOfInputs, const unsigned int bufferSize) {
+        signalCount = numberOfInputs;
+
+        *signalMatrix = new T[signalCount];
+        for (int i = 0; i < signalCount; ++i)
+        {
+            signalMatrix[i] = new T[bufferSize];
+        }
 
     }
 
-}
+    ~SignalMatrix() {
+
+        for (int i = 0; i < signalCount; ++i)
+        {
+            delete signalMatrix[i];
+        }
+
+        delete signalMatrix;
+    }
+
+
+
+};
 
 template <typename T> struct CallbackState {
 
     T * buffer;
     T sampleRate;
-    uint bufferSize;
+    int bufferSize;
+    SignalMatrix<T> * signalMatrix;
 
-    CallbackState(T sr, uint bfSize) : sampleRate(sr), bufferSize(bfSize) {
+    CallbackState(T sr, int bfSize) : sampleRate(sr), bufferSize(bfSize) {
 
         buffer = new T [bufferSize];
         memset(buffer, bufferSize, 0);
+        // signalMatrix = new SignalMatrix<T>(10, bufferSize);
 
     }
 
     ~CallbackState() {
 
         delete buffer;
+        // delete signalMatrix;
 
     }
-};
-
-template <typename T> struct CallbackParameters {
-
-    CallbackParameters() {
-
-    }
-
-    ~CallbackParameters (){
-
-    }
-
 };
 
 template <typename T> class CallbackController {
 
 private:
+
     typedef std::function<void (CallbackState<T>*)> Callback;
 
     std::vector< Callback > callbacks;
@@ -70,18 +81,18 @@ public:
 
     ~CallbackController () {
 
-        std::vector< std::function <void (CallbackState<T>*)> >().swap(callbacks);
+        delete callbackState;
+        std::vector< Callback >().swap(callbacks);
 
     }
 
-    void addDSPCallback(Callback callback) {
+    void addCallback (Callback callback) {
 
         callbacks.push_back(callback);
-        std::cout << "Added callback.\n";
 
     }
 
-    T * renderCallbackChain() {
+    T * renderCallbackChain () {     // TODO: Do I want to render all of the samples at once and return a buffer, or call this function every time I need to render a sample? Probably just a buffer at a time.
 
         if (callbacks.size() > 0) {
 
@@ -96,6 +107,7 @@ public:
         } else {
 
             return nullptr; // TODO: Have this return a buffer of 0s instead of null.
+
         }
 
     }
@@ -103,9 +115,7 @@ public:
 };
 
 // Convenience Typedefs
-
-typedef float * DSPCallbackReturnTypeFloat;
-typedef CallbackState<float> DSPCallbackStateFloat;
-typedef std::function<void (DSPCallbackStateFloat *)> DSPCallbackFloat;
+typedef CallbackState<float> CallbackStateFloat;
+typedef std::function<void (CallbackStateFloat *)> CallbackFloat;
 
 #endif
