@@ -1,5 +1,12 @@
 CC = clang++
 FLAGS = -std=c++14 -g -O0 -Wall -Wpedantic -Werror
+LIBS = -l portaudio
+# SRC =
+NAME = SSound
 
-dsp : dsp.cpp DSPController.hpp
-	$(CC) $(FLAGS) -o dsp dsp.cpp
+$(NAME) : dsp.cpp DSPController.hpp PortAudio.hpp
+	$(CC) $(FLAGS) -o $(NAME) dsp.cpp $(LIBS)
+
+clean:
+	rm $(NAME)
+	rm -rf *.dSYM
