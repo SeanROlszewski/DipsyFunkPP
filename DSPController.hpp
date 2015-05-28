@@ -56,7 +56,7 @@ private:
 
 public:
 
-    CallbackController (const T sampleRate, const T bufferSize) {
+    CallbackController (const T sampleRate, const unsigned int bufferSize) {
 
         callbackState = new CallbackState<T>(sampleRate, bufferSize);
         callbacks.resize(0);
@@ -104,6 +104,9 @@ public:
 
 // Convenience Typedefs
 typedef CallbackState<float> CallbackStateFloat;
+typedef CallbackState<double> CallbackStateDouble;
 typedef std::function<void (CallbackStateFloat *)> CallbackFloat;
+typedef std::function<void (CallbackStateDouble *)> CallbackDouble;
+
 
 #endif
