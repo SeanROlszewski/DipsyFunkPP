@@ -15,7 +15,7 @@ int main(int argc, char const *argv[]) {
     callbackController.addCallback(pinkNoiseGenerator);
     callbackController.addCallback(LFO);
 
-    // callbackController.renderCallbackChain(); // This is called in runPortAudioWithUserData here, but can be called anywhere.
+    // callbackController.renderCallbackChain(); // This is called in runPortAudioWithUserData in this example, but can be called anywhere. It returns a pointer to a buffer.
 
     // The only thing worth checking out in this function is where callbackController gets passed to PortAudio's callback.
     runPortAudioWithUserData(SAMPLE_RATE, BUFFER_SIZE, &callbackController);

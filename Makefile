@@ -2,7 +2,7 @@ CC = clang++
 FLAGS = -std=c++14 -g -O0 -Wall -Wpedantic -Werror
 LIBS = -l portaudio
 # SRC =
-NAME = SSound
+NAME = HelloDipsyFunk
 
 $(NAME) : dsp.cpp DSPController.hpp PortAudio.hpp
 	$(CC) $(FLAGS) -o $(NAME) dsp.cpp $(LIBS)
