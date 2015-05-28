@@ -5,9 +5,9 @@ A functional C++ DSP framework for the rapid prototyping of algorithms.
 ### Why DipsyFunk? ###
 
 * Standardized, clean, and consolidated interface across all your DSP code. All of DipsyFunk's implementation is in a single header file.
-* No subclassing or type hierarchies are necessary to represent DSP logic.
-* Signal-rate and control-rate parameters are easily passed into the DSP logic from GUI components or other subroutines.
-* Type agnostic - take advantage of whatever bit-depth you choose as soon as you begin writing your DSP logic.
+* No subclassing or type hierarchies are necessary to represent DSP logic. Just code the difference equation and you're done!
+* Signal-rate and control-rate parameters are easily passed into the DSP logic from GUI components or other subroutines. Access them through the provided interface out of the box.
+* Type agnostic - take advantage of whatever bit-depth you choose as soon as you begin writing your DSP logic. Use any APIs custom numerical type as well.
 
 ### How do I get set up? ###
 
