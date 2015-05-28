@@ -1,5 +1,5 @@
 
-#include "DSPController.hpp" // DSP Callback Prototyping Framework
+#include "DipsyFunk.hpp" // DSP Callback Prototyping Framework
 #include "DSPModules.hpp" // My DSP callbacks. These get added to the callbackController below.
 #include "PortAudio.hpp" // For playing back the DSP callbacks
 

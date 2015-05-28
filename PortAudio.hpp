@@ -2,7 +2,7 @@
 #define PORT_AUDIO_WRAPPER_H
 
 #include "portaudio.h"
-#include "DSPController.hpp"
+#include "DipsyFunk.hpp"
 #include "StringUtils.hpp"
 
 int renderAudio( const void *input,

@@ -1,7 +1,7 @@
 #ifndef DSP_MODULES_H
 #define DSP_MODULES_H
 
-#include "DSPController.hpp"
+#include "DipsyFunk.hpp"
 #include <cmath>
 #include <random>
 
