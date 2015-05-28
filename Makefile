@@ -4,7 +4,7 @@ LIBS = -l portaudio
 # SRC =
 NAME = HelloDipsyFunk
 
-$(NAME) : dsp.cpp DSPController.hpp PortAudio.hpp
+$(NAME) : dsp.cpp DipsyFunk.hpp PortAudio.hpp DSPModules.hpp StringUtils.hpp
 	$(CC) $(FLAGS) -o $(NAME) dsp.cpp $(LIBS)
 
 clean:
