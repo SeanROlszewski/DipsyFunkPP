@@ -1,67 +1,51 @@
 #ifndef DSPCONTROLLER_H
 #define DSPCONTROLLER_H
-
 #include <functional>
+#include <map>
 #include <vector>
 
-template <typename T> class SignalMatrix {
+template <typename T> struct CallbackState {
 
-private:
+    typedef std::map<std::string, T> ParameterMatrix;
 
-    T ** signalMatrix;  // A list of signal inputs to the function.
-    unsigned int signalCount; // The number of signals in the matrix.
+    T sampleRate;
+    int bufferSize;
+    T * buffer;
+    T ** signalMatrix;  // A list of signal inputs with a reference to the signal.
+    const unsigned int signalCount = 5;
+    // ParameterMatrix parameterMatrix; // A list of parameter values. TODO: Implement this!
 
-public:
+    CallbackState(const T sr, const int bfSize) : sampleRate(sr), bufferSize(bfSize) {
 
-    SignalMatrix(const unsigned int numberOfInputs, const unsigned int bufferSize) {
-        signalCount = numberOfInputs;
+        buffer = new T [bufferSize];
+        memset(buffer, bufferSize, 0);
 
-        *signalMatrix = new T[signalCount];
+
+        signalMatrix = new T*[signalCount];
         for (int i = 0; i < signalCount; ++i)
         {
             signalMatrix[i] = new T[bufferSize];
         }
-
-    }
-
-    ~SignalMatrix() {
-
-        for (int i = 0; i < signalCount; ++i)
-        {
-            delete signalMatrix[i];
-        }
-
-        delete signalMatrix;
-    }
-
-
-
-};
-
-template <typename T> struct CallbackState {
-
-    T * buffer;
-    T sampleRate;
-    int bufferSize;
-    SignalMatrix<T> * signalMatrix;
-
-    CallbackState(T sr, int bfSize) : sampleRate(sr), bufferSize(bfSize) {
-
-        buffer = new T [bufferSize];
-        memset(buffer, bufferSize, 0);
-        // signalMatrix = new SignalMatrix<T>(10, bufferSize);
+        // parameterMatrix = new ParameterMatrix;
 
     }
 
     ~CallbackState() {
 
         delete buffer;
-        // delete signalMatrix;
+        delete signalMatrix;
+        // delete parameterMatrix;
 
     }
 };
 
+
+// The CallbackController is given a list of callbacks to execute,
+// and executes the callbacks in the order it's given them.
 template <typename T> class CallbackController {
+protected:
+
+    T * zeroBuffer;
 
 private:
 
@@ -72,16 +56,20 @@ private:
 
 public:
 
-    CallbackController (T sampleRate, T bufferSize) {
+    CallbackController (const T sampleRate, const T bufferSize) {
 
         callbackState = new CallbackState<T>(sampleRate, bufferSize);
         callbacks.resize(0);
+
+        zeroBuffer = new T[bufferSize];
+        memset(zeroBuffer, bufferSize, 0);
 
     }
 
     ~CallbackController () {
 
         delete callbackState;
+        delete zeroBuffer;
         std::vector< Callback >().swap(callbacks);
 
     }
@@ -92,7 +80,7 @@ public:
 
     }
 
-    T * renderCallbackChain () {     // TODO: Do I want to render all of the samples at once and return a buffer, or call this function every time I need to render a sample? Probably just a buffer at a time.
+    T * renderCallbackChain () noexcept {     // TODO: Do I want to render all of the samples at once and return a buffer, or call this function every time I need to render a sample? Probably just a buffer at a time.
 
         if (callbacks.size() > 0) {
 
@@ -106,7 +94,7 @@ public:
 
         } else {
 
-            return nullptr; // TODO: Have this return a buffer of 0s instead of null.
+            return zeroBuffer; // TODO: Have this return a buffer of 0s instead of null.
 
         }
 
