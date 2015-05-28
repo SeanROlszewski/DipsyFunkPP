@@ -4,7 +4,7 @@ A functional C++ DSP framework for the rapid prototyping of algorithms.
 
 ### Why DipsyFunk? ###
 
-DipsyFunk is a DSP framework written in C++ that allows a programmer to implement DSP functions as a series of lambda expressions that get evaluated by a provided class. This frees a programmer from having to write any OO code to manage their DSP logic, and thus allowing a programmer to immediately begin developing their DSP algorithms.
+DipsyFunk is a DSP framework written in C++ that allows a programmer to implement DSP functions as a series of lambda expressions that are given to DispyFunk to compute. This frees a programmer from having to write any OO code to manage their DSP logic, and let's someone immediately begin developing DSP algorithms.
 
 In addition to its convienience, DipsyFunk also has:
 
@@ -15,7 +15,7 @@ In addition to its convienience, DipsyFunk also has:
 
 ### How do I get set up? ###
 
-* Requires C++14 for use, and currently only compiles under `clang++`. Apple's Xcode Command Line Tools for 10.10.2 and above supports this. 
+* Requires C++11/14 for use, and currently only compiles under `clang++`. Apple's Xcode Command Line Tools for 10.10.2 and above supports this. 
 * The provided example requires PortAudio to be installed.
 * Run `make` in the root directory to compile the example. 
 * Run `./HelloDipsyFunk` to hear an aural treat.
