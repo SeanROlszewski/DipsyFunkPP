@@ -11,7 +11,7 @@ In addition to its convienience, DipsyFunk also has:
 * A standardized, clean, and consolidated interface. All of DipsyFunk's implementation is in a single header file.
 * No subclassing or type hierarchies. Simply use the `CallbackController` and `std::function` (or the included `typedef`) classes to develop your algorithms and code. Just code the difference equation and you're done!
 * Signal-rate and control-rate parameters are easily passed into the DSP logic from GUI components or other subroutines. Access them through the provided interface out of the box.
-* Type agnostic - take advantage of whatever bit-depth you choose as soon as you begin writing your DSP logic. Use any APIs custom numerical type as well.
+* Type agnostic - take advantage of whatever bit-depth you choose as soon as you begin writing your DSP logic. Use any API's custom numerical type as well.
 
 ### How do I get set up? ###
 
