@@ -14,8 +14,6 @@ void dumpBufferOfSize( const float * buffer, const int bufferSize ) {
     }
 }
 
-void printPortAudioErrorMessage(PaError portAudioState) {
-    std::cout << "PortAudio Error: \n" << Pa_GetErrorText(portAudioState) << "\n";
-}
+
 
 #endif

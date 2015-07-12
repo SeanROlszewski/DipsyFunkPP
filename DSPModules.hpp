@@ -5,9 +5,9 @@
 #include <cmath>
 #include <random>
 
-enum LFOParameterWaveform {
-    LFOParameterWaveformSine = 0,
-    LFOParameterWaveformNull = 1
+enum Waveform {
+    Sine = 0,
+    NullWave = 1
 };
 
 CallbackFloat sineGenerator = [] (CallbackStateFloat *callbackState) -> void {
@@ -21,8 +21,8 @@ CallbackFloat sineGenerator = [] (CallbackStateFloat *callbackState) -> void {
     {
 
         float sample = (sin(phase) + callbackState->buffer[i]) / 2;
-        callbackState->buffer[i] = sample;
         phase += phaseIncrement;
+        callbackState->buffer[i] = sample;
 
     }
 
@@ -34,21 +34,21 @@ CallbackFloat LFO = [] (CallbackStateFloat *callbackState) -> void {
     static float frequency = 0.5;
     static float phase = 0.0;
     static float phaseIncrement = (TWOPI *  frequency) / callbackState->sampleRate;
-    static LFOParameterWaveform waveform = LFOParameterWaveformSine;
+    static Waveform waveform = Sine;
 
     for (int i = 0; i < callbackState->bufferSize; ++i)
     {
 
         float sample = 0.0;
 
-        if (waveform == LFOParameterWaveformSine) {
+        if (waveform == Sine) {
 
             sample = sin(phase) * callbackState->buffer[i];
 
         }
 
-        callbackState->buffer[i] = sample;
         phase += phaseIncrement;
+        callbackState->buffer[i] = sample;
 
     }
 
@@ -56,20 +56,20 @@ CallbackFloat LFO = [] (CallbackStateFloat *callbackState) -> void {
 
 CallbackFloat gaussianNoiseGenerator = [] (CallbackStateFloat *callbackState) -> void {
 
-    const static int q = 15;
-    const static float c1 = (1 << q) - 1;
-    const static float c2 = ((int)(c1 / 3)) + 1;
-    const static float c3 = 1.f / c1;
+    const int q = 15;
+    const float c1 = (1 << q) - 1;
+    const float c2 = ((int)(c1 / 3)) + 1;
+    const float c3 = 1.f / c1;
 
     float random = 0.0;
     float noise = 0.0;
 
     for (int i = 0; i < callbackState->bufferSize; ++i)
     {
-        random = ((float)rand() / (float)(RAND_MAX - 1));
 
-        float rc2 = (random * c2);
-        noise = (2.f * ( rc2 + rc2 + rc2) - 3.f * (c2 - 1.f)) * c3;
+        random = ((float)rand() / (float)(RAND_MAX - 1));
+        float rc2 = 3 * (random * c2);
+        noise = (2.f * rc2 - 3.f * (c2 - 1.f)) * c3;
 
         callbackState->buffer[i] = noise * 0.5;
     }

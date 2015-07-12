@@ -33,6 +33,11 @@ template <typename T> struct CallbackState {
     ~CallbackState() {
 
         delete buffer;
+
+        for (int i = 0; i < signalCount; ++i)
+        {
+            signalMatrix[i] = nullptr;
+        }
         delete signalMatrix;
         // delete parameterMatrix;
 
@@ -92,9 +97,9 @@ public:
 
             return callbackState->buffer;
 
-        } else {
+        } else { // There are no registered callbacks. Return a zero'd out buffer anyway.
 
-            return zeroBuffer; // TODO: Have this return a buffer of 0s instead of null.
+            return zeroBuffer;
 
         }
 
