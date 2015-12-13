@@ -4,7 +4,7 @@ A functional C++ DSP framework for the rapid prototyping of algorithms.
 
 ### Why DipsyFunk? ###
 
-DipsyFunk is a DSP framework written in C++ that allows a programmer to implement DSP functions as a series of lambda expressions that are given to DispyFunk to compute. This frees a programmer from having to write any OO code to manage their DSP logic, and let's someone immediately begin developing DSP algorithms.
+DipsyFunk is a DSP framework written in C++ that allows a programmer to implement DSP functions as a series of callbacks that are given to DispyFunk to compute. This frees a programmer from having to write any OO code to manage their DSP logic, and let's someone immediately begin developing DSP algorithms.
 
 In addition to its convienience, DipsyFunk also has:
 
